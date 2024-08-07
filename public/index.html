@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Omegle Clone</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="setup">
+    <h2>Enter your details</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="text" id="tags" placeholder="Tags (comma separated)">
+    <button id="start">Start</button>
+  </div>
+  
+  <div id="chat-container" class="hidden">
+    <div id="text-chat">
+      <h2>Chat</h2>
+      <div id="chat-box"></div>
+      <input type="text" id="message-input" placeholder="Type your message here">
+      <button id="send-button">Send</button>
+    </div>
+
+    <div id="video-chat" class="hidden">
+      <h2>Video Chat</h2>
+      <video id="local-video" autoplay muted></video>
+      <video id="remote-video" autoplay></video>
+      <button id="toggle-video">Toggle Video</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
