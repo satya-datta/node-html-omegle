@@ -17,31 +17,32 @@ io.on('connection', (socket) => {
   socket.on('join', (tags) => {
     socket.tags = tags;
     socket.chatting = false;
-
+  
     let matched = false;
     for (let i = 0; i < waitingUsers.length; i++) {
       if (waitingUsers[i].tags.some(tag => tags.includes(tag))) {
         const matchedUser = waitingUsers.splice(i, 1)[0];
-        const room = ${socket.id}#${matchedUser.socket.id};
-
+        const room = `${socket.id}#${matchedUser.socket.id}`;
+  
         socket.join(room);
         matchedUser.socket.join(room);
-
+  
         socket.room = room;
         matchedUser.socket.room = room;
-
+  
         socket.emit('matched', { type: matchedUser.socket.type });
         matchedUser.socket.emit('matched', { type: socket.type });
-
+  
         matched = true;
         break;
       }
     }
-
+  
     if (!matched) {
       waitingUsers.push({ socket, tags, type: socket.type });
     }
   });
+  
 
   socket.on('setType', (type) => {
     socket.type = type;
@@ -72,7 +73,7 @@ function joinQueue(socket) {
   for (let i = 0; i < waitingUsers.length; i++) {
     if (waitingUsers[i].tags.some(tag => socket.tags.includes(tag))) {
       const matchedUser = waitingUsers.splice(i, 1)[0];
-      const room = ${socket.id}#${matchedUser.socket.id};
+      const room = `${socket.id}#${matchedUser.socket.id}`;
 
       socket.join(room);
       matchedUser.socket.join(room);
