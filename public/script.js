@@ -1,28 +1,30 @@
 const socket = io();
+let username;
+let tags;
 let localStream;
 let remoteStream;
 let peerConnection;
 const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
-document.getElementById('chat-option').addEventListener('click', () => {
-  startChat('chat');
-});
+document.getElementById('start').addEventListener('click', () => {
+  username = document.getElementById('username').value;
+  tags = document.getElementById('tags').value.split(',').map(tag => tag.trim());
 
-document.getElementById('video-option').addEventListener('click', () => {
-  startChat('video');
+  if (username && tags.length > 0) {
+    socket.emit('join', { username, tags });
+    document.getElementById('setup').classList.add('hidden');
+    document.getElementById('chat-container').classList.remove('hidden');
+  } else {
+    alert('Please enter a username and at least one tag.');
+  }
 });
 
 document.getElementById('send-button').addEventListener('click', () => {
   const message = document.getElementById('message-input').value;
   if (message) {
     socket.emit('chat message', { message });
-    document.getElementById('message-input').value = '';
+    document.getElementById('message-input').value = ''; // Clear the input field after sending
   }
-});
-
-document.getElementById('skip-button').addEventListener('click', () => {
-  clearChatBox();
-  socket.emit('skip');
 });
 
 socket.on('chat message', ({ sender, message }) => {
@@ -34,37 +36,10 @@ socket.on('self message', ({ sender, message }) => {
 });
 
 socket.on('matched', async (data) => {
-  document.getElementById('status').textContent = 'Connected to a stranger';
-  if (data.type === 'video') {
-    document.getElementById('video-chat').classList.remove('hidden');
-    await startVideoChat();
-  } else {
-    document.getElementById('video-chat').classList.add('hidden');
-  }
+  alert('You have been matched with ' + data.username);
+  document.getElementById('video-chat').classList.remove('hidden');
+  await startVideoChat();
 });
-
-socket.on('finding', () => {
-  document.getElementById('status').textContent = 'Finding...';
-});
-
-socket.on('strangerDisconnected', () => {
-  document.getElementById('status').textContent = 'Stranger disconnected. Finding new stranger...';
-  clearChatBox();
-  socket.emit('skip');
-});
-
-async function startChat(type) {
-  const tags = document.getElementById('tags').value.split(',').map(tag => tag.trim());
-  if (tags.length > 0) {
-    socket.emit('setType', type);
-    socket.emit('join', tags);
-    document.getElementById('setup').classList.add('hidden');
-    document.getElementById('chat-container').classList.remove('hidden');
-    document.getElementById('status').textContent = 'Finding...';
-  } else {
-    alert('Please enter at least one tag.');
-  }
-}
 
 async function startVideoChat() {
   try {
@@ -128,11 +103,4 @@ function addMessageToChat(sender, message) {
   item.classList.add('message', sender);
   document.getElementById('chat-box').appendChild(item);
   document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
-}
-
-function clearChatBox() {
-  const chatBox = document.getElementById('chat-box');
-  while (chatBox.firstChild) {
-    chatBox.removeChild(chatBox.firstChild);
-  }
 }

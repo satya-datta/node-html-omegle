@@ -8,20 +8,18 @@
 </head>
 <body>
   <div id="setup">
-    <h2>Choose your option</h2>
+    <h2>Enter your details</h2>
+    <input type="text" id="username" placeholder="Username">
     <input type="text" id="tags" placeholder="Tags (comma separated)">
-    <button id="chat-option">Chat with Stranger</button>
-    <button id="video-option">Video Chat with Stranger</button>
+    <button id="start">Start</button>
   </div>
-
+  
   <div id="chat-container" class="hidden">
-    <div id="status">Finding...</div>
     <div id="text-chat">
       <h2>Chat</h2>
       <div id="chat-box"></div>
       <input type="text" id="message-input" placeholder="Type your message here">
       <button id="send-button">Send</button>
-      <button id="skip-button">Skip</button>
     </div>
 
     <div id="video-chat" class="hidden">
