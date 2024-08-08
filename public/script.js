@@ -1,5 +1,4 @@
 const socket = io();
-let username;
 let tags;
 let localStream;
 let remoteStream;
@@ -7,15 +6,14 @@ let peerConnection;
 const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
 document.getElementById('start').addEventListener('click', () => {
-  username = document.getElementById('username').value;
   tags = document.getElementById('tags').value.split(',').map(tag => tag.trim());
 
-  if (username && tags.length > 0) {
-    socket.emit('join', { username, tags });
+  if (tags.length > 0) {
+    socket.emit('join', { tags });
     document.getElementById('setup').classList.add('hidden');
     document.getElementById('chat-container').classList.remove('hidden');
   } else {
-    alert('Please enter a username and at least one tag.');
+    alert('Please enter at least one tag.');
   }
 });
 
@@ -35,8 +33,8 @@ socket.on('self message', ({ sender, message }) => {
   addMessageToChat(sender, message);
 });
 
-socket.on('matched', async (data) => {
-  alert('You have been matched with ' + data.username);
+socket.on('matched', async () => {
+  alert('You have been matched!');
   document.getElementById('video-chat').classList.remove('hidden');
   await startVideoChat();
 });
@@ -85,17 +83,59 @@ async function startVideoChat() {
       await peerConnection.setLocalDescription(answer);
       socket.emit('answer', answer);
     });
+
+    socket.on('remote-mic-toggle', (status) => {
+      document.querySelector('#remote-video-container .overlay').style.display = status ? 'none' : 'block';
+      displayNotification(`Stranger turned ${status ? 'on' : 'off'} their mic`);
+    });
+
+    socket.on('remote-video-toggle', (status) => {
+      document.getElementById('remote-video').style.display = status ? 'block' : 'none';
+      displayNotification(`Stranger turned ${status ? 'on' : 'off'} their video`);
+    });
+
   } catch (e) {
     console.error('Error accessing media devices.', e);
   }
 }
 
 document.getElementById('toggle-video').addEventListener('click', () => {
-  if (localStream) {
-    const videoTrack = localStream.getVideoTracks()[0];
-    videoTrack.enabled = !videoTrack.enabled;
-  }
+  const videoTrack = localStream.getVideoTracks()[0];
+  videoTrack.enabled = !videoTrack.enabled;
+  updateToggleButton('toggle-video', videoTrack.enabled);
+  document.getElementById('local-video-container .overlay').style.display = videoTrack.enabled ? 'none' : 'block';
+  socket.emit('video-toggle', videoTrack.enabled);
 });
+
+document.getElementById('toggle-mic').addEventListener('click', () => {
+  const audioTrack = localStream.getAudioTracks()[0];
+  audioTrack.enabled = !audioTrack.enabled;
+  updateToggleButton('toggle-mic', audioTrack.enabled);
+  document.getElementById('local-mic-status').style.display = audioTrack.enabled ? 'none' : 'block';
+  socket.emit('mic-toggle', audioTrack.enabled);
+});
+
+function updateToggleButton(buttonId, enabled) {
+  const button = document.getElementById(buttonId);
+  if (enabled) {
+    button.textContent = `Turn Off ${buttonId === 'toggle-video' ? 'Video' : 'Mic'}`;
+    button.classList.add('on');
+    button.classList.remove('off');
+  } else {
+    button.textContent = `Turn On ${buttonId === 'toggle-video' ? 'Video' : 'Mic'}`;
+    button.classList.add('off');
+    button.classList.remove('on');
+  }
+}
+
+function displayNotification(message) {
+  const chatBox = document.getElementById('chat-box');
+  const item = document.createElement('div');
+  item.textContent = message;
+  item.classList.add('message', 'notification');
+  chatBox.appendChild(item);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
 
 function addMessageToChat(sender, message) {
   const item = document.createElement('div');

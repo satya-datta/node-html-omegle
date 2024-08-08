@@ -14,8 +14,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 io.on('connection', (socket) => {
   console.log('A user connected');
 
-  socket.on('join', ({ username, tags }) => {
-    socket.username = username;
+  socket.on('join', ({ tags }) => {
     socket.tags = tags;
 
     let matched = false;
@@ -30,8 +29,8 @@ io.on('connection', (socket) => {
         socket.room = room;
         matchedUser.socket.room = room;
 
-        socket.emit('matched', { username: matchedUser.socket.username });
-        matchedUser.socket.emit('matched', { username });
+        socket.emit('matched');
+        matchedUser.socket.emit('matched');
 
         matched = true;
         break;
@@ -39,7 +38,7 @@ io.on('connection', (socket) => {
     }
 
     if (!matched) {
-      waitingUsers.push({ socket, username, tags });
+      waitingUsers.push({ socket, tags });
     }
   });
 
